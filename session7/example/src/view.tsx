@@ -51,7 +51,7 @@ const sortBy = (key: keyof Data) => (a: Data[]) => {
     return b
 }
 
-const App = ({model: model, dispatcher}: { model: Model, dispatcher: Dispatcher }) => {
+const App = ({model, dispatcher}: { model: Model, dispatcher: Dispatcher }) => {
     const identity = (a: Data[]) => a
     const [sort, setSort] = useState(() => identity)
     const data = (sort ?? identity)(model.personData())
