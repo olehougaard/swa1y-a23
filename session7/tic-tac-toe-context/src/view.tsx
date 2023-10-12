@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { useReducer, useEffect } from 'react'
+import { useReducer, useContext, createContext, useEffect } from 'react'
 import { createGame, Game } from './model'
 import { reduce, Action } from './reducer'
 import './View.css';
 
-const Message = ({game}: {game: Game}) => {
+const Message = () => {
+  const { game }: { game: Game } = useContext(AppContext)
   
   const message = ({winState, inTurn, stalemate}: Game) => {
     if (winState)
@@ -20,8 +21,9 @@ const Message = ({game}: {game: Game}) => {
   return <h2>{message(game)}</h2>
 }        
 
-const Board = ({game, dispatch}: { game: Game, dispatch: (_: Action) => void }) =>
-  <table>
+const Board = () => {
+  const { game, dispatch }: { game: Game, dispatch: (_: Action) => void } = useContext(AppContext)
+  return <table>
       <tbody>
           {game.board.map((row, x) =>
           <tr key={x}>{row.map ( (tile, y) => 
@@ -32,17 +34,22 @@ const Board = ({game, dispatch}: { game: Game, dispatch: (_: Action) => void }) 
           )}
       </tbody>
   </table>
+}
+
+const AppContext = createContext(null)
 
 const App = () => {
   const [game, dispatch] = useReducer(reduce, createGame())
-  return <div> 
-    <h1>Tic-tac-toe</h1>
-      <Message game = {game} />
-      <Board game = {game} dispatch = {dispatch} />
-    <button id = 'reset' onClick = {() => dispatch({type: 'reset'})}>
-        Reset
-    </button>
-  </div>
+  return <AppContext.Provider value = {{ game, dispatch }}>
+    <div> 
+      <h1>Tic-tac-toe</h1>
+        <Message/>
+        <Board/>
+      <button id = 'reset' onClick = {() => dispatch({type: 'reset'})}>
+          Reset
+      </button>
+    </div>
+  </AppContext.Provider>
 }
 
 export default () => <App/>

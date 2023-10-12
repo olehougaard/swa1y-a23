@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useState } from 'react'
 import { Model, Data } from './model'
 import {Dispatcher} from './dispatcher'
 
@@ -25,20 +26,47 @@ const PersonRow = (props: Props) => (
     </tr>
 )
 
-const PersonDataBody = ({model, dispatcher}: { model: Model, dispatcher: Dispatcher }) => (
-    <tbody>
+const PersonDataBody = ({data: model, dispatcher}: { data: Data[], dispatcher: Dispatcher }) => {
+    return <tbody>
         {
-            model.personData().map((person: Data) => <PersonRow key={person.id.toString()} {...{person, dispatcher}}/>)
+            model.map((person: Data) => <PersonRow key={person.id.toString()} {...{person, dispatcher}}/>)
         }
     </tbody>
-)
+}
 
-export default (dispatcher: Dispatcher) => (model: Model) => (
-    <div id='base'>
+const sortOrder = (a: any, b: any) => {
+    if (a < b)
+        return -1
+    else if (a === b)
+        return 0
+    else
+        return 1
+}
+
+const keySortOrder = (key: keyof Data) => (a: Data, b: Data) => sortOrder(a[key], b[key])
+
+const sortBy = (key: keyof Data) => (a: Data[]) => {
+    let b = [...a]
+    b.sort(keySortOrder(key))
+    return b
+}
+
+const App = ({model: model, dispatcher}: { model: Model, dispatcher: Dispatcher }) => {
+    const identity = (a: Data[]) => a
+    const [sort, setSort] = useState(() => identity)
+    const data = (sort ?? identity)(model.personData())
+
+    function defSort(key: keyof Data) {
+        setSort(() => sortBy(key))
+    }
+
+    return <div id='base'>
         <h1>People</h1>
         <table id='employees'>
-            <thead><tr><td>Id</td><td>Name</td><td>Employee id</td><td>Salary</td><td>Manager</td></tr></thead>
-            <PersonDataBody model={model} dispatcher={dispatcher}/>
+            <thead><tr><td onClick={ _ => defSort('id') }>Id</td><td onClick={ _ => defSort('name')} >Name</td><td>Employee id</td><td>Salary</td><td>Manager</td></tr></thead>
+            <PersonDataBody data={data} dispatcher={dispatcher}/>
         </table>
     </div>
-)
+}
+
+export default (dispatcher: Dispatcher) => (model: Model) => <App model = {model} dispatcher={dispatcher}/>
